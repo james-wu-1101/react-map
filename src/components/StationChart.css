@@ -1,0 +1,94 @@
+.station-chart-container {
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-header h2 {
+  margin: 0;
+  color: #424242;
+  font-size: 1.5rem;
+}
+
+.chart-type-selector {
+  display: flex;
+  gap: 10px;
+}
+
+.chart-type-selector button {
+  padding: 8px 16px;
+  border: 2px solid #E0E0E0;
+  border-radius: 6px;
+  background: white;
+  color: #424242;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.chart-type-selector button:hover {
+  background: #F5F5F5;
+  border-color: #2196F3;
+  color: #2196F3;
+}
+
+.chart-type-selector button.active {
+  background: #2196F3;
+  color: white;
+  border-color: #2196F3;
+  box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.chart-wrapper {
+  width: 100%;
+  height: 400px;
+  margin-top: 20px;
+}
+
+/* 自定義 Tooltip 樣式 */
+.recharts-tooltip-wrapper {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.recharts-default-tooltip {
+  background-color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.recharts-tooltip-label {
+  color: #2c3e50 !important;
+  font-weight: bold !important;
+}
+
+.recharts-tooltip-item {
+  color: #34495e !important;
+}
+
+/* 自定義 Legend 樣式 */
+.recharts-legend-item-text {
+  color: #2c3e50 !important;
+}
+
+/* 自定義軸線樣式 */
+.recharts-cartesian-axis-line {
+  stroke: #bdc3c7 !important;
+}
+
+.recharts-cartesian-axis-tick-value {
+  fill: #7f8c8d !important;
+  font-size: 12px !important;
+} 
