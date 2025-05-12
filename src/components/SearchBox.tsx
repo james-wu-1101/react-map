@@ -35,7 +35,7 @@ const SearchBox: React.FC<SearchBoxProps> = ({ stations, onSelectStation }) => {
     const results = stations.filter(station => 
       station.sna.toLowerCase().includes(searchTerm.toLowerCase()) ||
       station.ar.toLowerCase().includes(searchTerm.toLowerCase())
-    ).slice(0, 5); // 限制顯示前5個結果
+    )
 
     setSearchResults(results);
     setIsOpen(true);

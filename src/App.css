@@ -87,6 +87,7 @@
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
+  margin: 0;
   background-color: #3498db;
   color: white;
   font-weight: bold;

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import type { Station } from '../types';
 import { fetchYouBikeStations } from '../services/youbikeApi';
 import SearchBox from './SearchBox';
@@ -24,17 +24,19 @@ L.Marker.prototype.options.icon = DefaultIcon;
 // 地圖移動控制組件
 const MapController: React.FC<{ 
   station: Station | null;
+  userLocation: UserLocation | null;
   onStationSelect: (station: Station) => void;
-}> = ({ station, onStationSelect }) => {
+}> = ({ station, userLocation, onStationSelect }) => {
   const map = useMap();
 
   useEffect(() => {
     if (station && isValidLatLng(station.latitude, station.longitude)) {
       map.setView([station.latitude, station.longitude], 18);
-      // 通知父組件站點已被選擇
       onStationSelect(station);
+    } else if (userLocation) {
+      map.setView([userLocation.latitude, userLocation.longitude], 16);
     }
-  }, [station, map, onStationSelect]);
+  }, [station, userLocation, map, onStationSelect]);
 
   return null;
 };
@@ -230,141 +232,73 @@ const Map: React.FC = () => {
             )}
           </div>
         </div>
-        {userLocation ? (
-          <MapContainer
-            center={[userLocation.latitude, userLocation.longitude]}
-            zoom={16}
-            style={{ height: '100%', width: '100%' }}
-            ref={mapRef}
+        <MapContainer
+          center={[25.0330, 121.5654]} // 預設台北市中心
+          zoom={16}
+          style={{ height: '100%', width: '100%' }}
+          ref={mapRef}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          />
+          <MapController 
+            station={selectedStation}
+            userLocation={userLocation}
+            onStationSelect={handleSelectStation}
+          />
+          <MarkerClusterGroup
+            chunkedLoading
+            maxClusterRadius={30}
+            spiderfyOnMaxZoom
+            zoomToBoundsOnClick
+            disableClusteringAtZoom={16}
+            spiderLegPolylineOptions={{
+              weight: 1.5,
+              color: '#666',
+              opacity: 0.8
+            }}
+            showCoverageOnHover={false}
+            removeOutsideVisibleBounds
+            chunkInterval={200}
+            chunkDelay={50}
           >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            />
-            <MapController 
-              station={selectedStation} 
-              onStationSelect={handleSelectStation}
-            />
-            <MarkerClusterGroup
-              maxClusterRadius={30}
-              spiderfyOnMaxZoom={true}
-              zoomToBoundsOnClick={true}
-              disableClusteringAtZoom={16}
-              spiderLegPolylineOptions={{
-                weight: 1.5,
-                color: '#666',
-                opacity: 0.8
-              }}
-              showCoverageOnHover={false}
-              removeOutsideVisibleBounds={true}
-              chunkedLoading={true}
-              chunkInterval={200}
-              chunkDelay={50}
-            >
-              {stations.map((station) => {
-                if (!isValidLatLng(station.latitude, station.longitude)) {
-                  console.warn('跳過無效站點:', station);
-                  return null;
-                }
-                return (
-                  <Marker
-                    key={station.sno}
-                    position={[station.latitude, station.longitude]}
-                    eventHandlers={{
-                      click: () => handleMarkerClick(station),
-                    }}
-                    ref={(marker) => {
-                      markerRefs.current[station.sno] = marker;
-                    }}
-                    zIndexOffset={selectedStation?.sno === station.sno ? 1000 : 0}
+            {stations.map((station) => {
+              if (!isValidLatLng(station.latitude, station.longitude)) {
+                console.warn('跳過無效站點:', station);
+                return null;
+              }
+              return (
+                <Marker
+                  key={station.sno}
+                  position={[station.latitude, station.longitude]}
+                  eventHandlers={{
+                    click: () => handleMarkerClick(station),
+                  }}
+                  ref={(marker) => {
+                    markerRefs.current[station.sno] = marker;
+                  }}
+                  zIndexOffset={selectedStation?.sno === station.sno ? 1000 : 0}
+                >
+                  <Popup
+                    closeButton={true}
+                    autoClose={false}
+                    closeOnEscapeKey={true}
                   >
-                    <Popup
-                      closeButton={true}
-                      autoClose={false}
-                      closeOnEscapeKey={true}
-                    >
-                      <div className="station-popup">
-                        <h3>{station.sna}</h3>
-                        <p>地址：{station.ar}</p>
-                        <p>可借車輛：{station.available_rent_bikes}</p>
-                        <p>可還空位：{station.available_return_bikes}</p>
-                        <p>總停車格：{station.total}</p>
-                        <p>更新時間：{station.updateTime}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
-            </MarkerClusterGroup>
-          </MapContainer>
-        ) : (
-          <MapContainer
-            center={[25.0330, 121.5654]}
-            zoom={16}
-            style={{ height: '100%', width: '100%' }}
-            ref={mapRef}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-            />
-            <MapController 
-              station={selectedStation} 
-              onStationSelect={handleSelectStation}
-            />
-            <MarkerClusterGroup
-              maxClusterRadius={30}
-              spiderfyOnMaxZoom={true}
-              zoomToBoundsOnClick={true}
-              disableClusteringAtZoom={16}
-              spiderLegPolylineOptions={{
-                weight: 1.5,
-                color: '#666',
-                opacity: 0.8
-              }}
-              showCoverageOnHover={false}
-              removeOutsideVisibleBounds={true}
-              chunkedLoading={true}
-              chunkInterval={200}
-              chunkDelay={50}
-            >
-              {stations.map((station) => {
-                if (!isValidLatLng(station.latitude, station.longitude)) {
-                  console.warn('跳過無效站點:', station);
-                  return null;
-                }
-                return (
-                  <Marker
-                    key={station.sno}
-                    position={[station.latitude, station.longitude]}
-                    eventHandlers={{
-                      click: () => handleMarkerClick(station),
-                    }}
-                    ref={(marker) => {
-                      markerRefs.current[station.sno] = marker;
-                    }}
-                    zIndexOffset={selectedStation?.sno === station.sno ? 1000 : 0}
-                  >
-                    <Popup
-                      closeButton={true}
-                      autoClose={false}
-                      closeOnEscapeKey={true}
-                    >
-                      <div className="station-popup">
-                        <h3>{station.sna}</h3>
-                        <p>地址：{station.ar}</p>
-                        <p>可借車輛：{station.available_rent_bikes}</p>
-                        <p>可還空位：{station.available_return_bikes}</p>
-                        <p>總停車格：{station.total}</p>
-                        <p>更新時間：{station.updateTime}</p>
-                      </div>
-                    </Popup>
-                  </Marker>
-                );
-              })}
-            </MarkerClusterGroup>
-          </MapContainer>
-        )}
+                    <div className="station-popup">
+                      <h3>{station.sna}</h3>
+                      <p>地址：{station.ar}</p>
+                      <p>可借車輛：{station.available_rent_bikes}</p>
+                      <p>可還空位：{station.available_return_bikes}</p>
+                      <p>總停車格：{station.total}</p>
+                      <p>更新時間：{station.updateTime}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MarkerClusterGroup>
+        </MapContainer>
       </div>
     </div>
   );

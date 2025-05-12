@@ -37,7 +37,7 @@ const StationChart: React.FC = () => {
   useEffect(() => {
     const fetchStations = async () => {
       try {
-        const response = await fetch('/src/services/userCount.json');
+        const response = await fetch('/userCount.json');
         const data = await response.json();
         setStations(data);
       } catch (err) {
